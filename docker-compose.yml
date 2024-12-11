@@ -2,7 +2,7 @@ networks:
   local-network:
     driver: bridge
 
-services:  
+services:
   mysql:
     image: mysql:5.7
     environment:
@@ -17,12 +17,17 @@ services:
     volumes:
       - "./setup/mysql:/docker-entrypoint-initdb.d:delegated"
 
+  mongodb:
+    image: mongo
+    ports:
+      - "27017:27017"
+
   products:
     build: ./services/products
     expose:
       - "5001"
     ports:
-      - "3000:5001"
+      - "5001:5001"
     environment:
       - NODE_ENV=development
       - PORT=5001
@@ -34,7 +39,22 @@ services:
       - "./services/products:/app:cached"
       - "/app/node_modules"
     command: "supervisor -w ./ ./app.js"
-    
+
+  suppliers:
+    build: ./services/suppliers
+    expose:
+      - "5003"
+    ports:
+      - "5003:5003"
+    environment:
+      - NODE_ENV=development
+      - PORT=5003
+    depends_on:
+      - mongodb
+    volumes:
+      - "./services/suppliers:/app:cached"
+      - "/app/node_modules"
+    command: "supervisor -w ./ ./app.js"
 
   #clients:
   #  build: ./services/clients
@@ -45,15 +65,6 @@ services:
   #  depends_on:
   #    - dynamodb-local
 
-  #suppliers:
-  #  build: ./services/suppliers
-  #  ports:
-  #    - "5003:3000"
-  #  environment:
-  #    - NODE_ENV=development
-  #  depends_on:
-  #    - mongodb
-
   #documents:
   #  build: ./services/documents
   #  ports:
@@ -63,16 +74,10 @@ services:
   #  depends_on:
   #    - localstack
 
-  
   #dynamodb-local:
   #  image: amazon/dynamodb-local
   #  ports:
   #    - "8000:8000"
-
-  #mongodb:
-  #  image: mongo
-  #  ports:
-  #    - "27017:27017"
 
   #localstack:
   #  image: localstack/localstack
