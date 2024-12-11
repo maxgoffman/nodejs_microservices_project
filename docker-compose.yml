@@ -1,0 +1,82 @@
+networks:
+  local-network:
+    driver: bridge
+
+services:  
+  mysql:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: products
+    expose:
+      - "3306"
+    ports:
+      - "3306:3306"
+    networks:
+      - local-network
+    volumes:
+      - "./setup/mysql:/docker-entrypoint-initdb.d:delegated"
+
+  products:
+    build: ./services/products
+    expose:
+      - "5001"
+    ports:
+      - "3000:5001"
+    environment:
+      - NODE_ENV=development
+      - PORT=5001
+    depends_on:
+      - mysql
+    networks:
+      - local-network
+    volumes:
+      - "./services/products:/app:cached"
+      - "/app/node_modules"
+    command: "supervisor -w ./ ./app.js"
+    
+
+  #clients:
+  #  build: ./services/clients
+  #  ports:
+  #    - "5002:3000"
+  #  environment:
+  #    - NODE_ENV=development
+  #  depends_on:
+  #    - dynamodb-local
+
+  #suppliers:
+  #  build: ./services/suppliers
+  #  ports:
+  #    - "5003:3000"
+  #  environment:
+  #    - NODE_ENV=development
+  #  depends_on:
+  #    - mongodb
+
+  #documents:
+  #  build: ./services/documents
+  #  ports:
+  #    - "5004:3000"
+  #  environment:
+  #    - NODE_ENV=development
+  #  depends_on:
+  #    - localstack
+
+  
+  #dynamodb-local:
+  #  image: amazon/dynamodb-local
+  #  ports:
+  #    - "8000:8000"
+
+  #mongodb:
+  #  image: mongo
+  #  ports:
+  #    - "27017:27017"
+
+  #localstack:
+  #  image: localstack/localstack
+  #  environment:
+  #    SERVICES: s3,sqs,sns,lambda,apigateway
+  #  ports:
+  #    - "4566:4566"
