@@ -46,7 +46,6 @@ router.get("/:id", (req, res) => {
 router.put("/:id", (req, res) => {
   const { id } = req.params;
   const { name, price, description } = req.body;
-  console.log("" + Object.entries(req.body));
   const query =
     "UPDATE products SET " +
     Object.entries(req.body)
