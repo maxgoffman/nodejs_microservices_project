@@ -1,7 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const connection = require("../models/product");
-
+const mapValidEntriesToString = (obj) =>
+  Object.entries(obj)
+    .map((element) => {
+      return `${element[0]} = ${
+        typeof element[1] == "string" ? `'${element[1]}'` : element[1]
+      }`;
+    })
+    .join(", ");
 // Create a new product
 router.post("/", (req, res) => {
   console.log("getting all products");
@@ -48,13 +55,7 @@ router.put("/:id", (req, res) => {
   const { name, price, description } = req.body;
   const query =
     "UPDATE products SET " +
-    Object.entries(req.body)
-      .map((element) => {
-        return `${element[0]} = ${
-          typeof element[1] == "string" ? `'${element[1]}'` : element[1]
-        }`;
-      })
-      .join(", ") +
+    mapValidEntriesToString(req.body) +
     " WHERE id = ?";
   connection.query(query, [id], (error) => {
     if (error) throw error;
