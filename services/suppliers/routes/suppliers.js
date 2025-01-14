@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const { MongoClient, ObjectID } = require("mongodb");
 const { getDb } = require("../models/supplier");
+const removeNullUndefined = (obj) =>
+  Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
 
 // Create a new supplier
 router.post("/", (req, res) => {
@@ -55,7 +57,7 @@ router.put("/:id", (req, res) => {
   const { name, contact } = req.body;
   db.collection("suppliers").updateOne(
     { _id: new ObjectID(id) },
-    { $set: { name, contact } },
+    { $set: removeNullUndefined({ name, contact }) },
     (err, result) => {
       if (err) {
         res.status(500).json({ error: "Failed to update supplier" });
@@ -72,7 +74,7 @@ router.delete("/:id", (req, res) => {
   const { id } = req.params;
 
   db.collection("suppliers").deleteOne(
-    { _id: new MongoClient.ObjectID(id) },
+    { _id: new ObjectID(id) },
     (err, result) => {
       if (err) {
         res.status(500).json({ error: "Failed to delete supplier" });

@@ -19,8 +19,51 @@ services:
 
   mongodb:
     image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: suppliers_db
     ports:
       - "27017:27017"
+    volumes:
+      - ./setup/mongodb/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - local-network
+
+  dynamodb-local:
+    image: amazon/dynamodb-local
+    ports:
+      - "8000:8000"
+    networks:
+      - local-network
+    user: root
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          '[ "$(curl -s -o /dev/null -I -w ''%{http_code}'' http://localhost:8000)" == "400" ]',
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  dynamodb-local-setup:
+    depends_on:
+      dynamodb-local:
+        condition: service_healthy
+    image: amazon/aws-cli
+    volumes:
+      - "./setup/dynamodb/schemas:/tmp/dynamoschemas"
+      - "./setup/dynamodb/data:/tmp/dynamodata"
+    environment:
+      AWS_ACCESS_KEY_ID: "FAKEID"
+      AWS_SECRET_ACCESS_KEY: "FAKEKEY"
+      AWS_REGION: "us-east-1"
+    entrypoint:
+      - bash
+    networks:
+      - local-network
+    command: '-c "for f in /tmp/dynamoschemas/*.json; do aws dynamodb create-table --endpoint-url "http://dynamodb-local:8000" --cli-input-json file://"$${f#./}"; done && for f in /tmp/dynamodata/*.json; do aws dynamodb put-item --endpoint-url "http://dynamodb-local:8000" --table-name $(basename "$${f%.*}") --item file://"$${f#./}"; done"'
 
   products:
     build: ./services/products
@@ -55,15 +98,26 @@ services:
       - "./services/suppliers:/app:cached"
       - "/app/node_modules"
     command: "supervisor -w ./ ./app.js"
+    networks:
+      - local-network
 
-  #clients:
-  #  build: ./services/clients
-  #  ports:
-  #    - "5002:3000"
-  #  environment:
-  #    - NODE_ENV=development
-  #  depends_on:
-  #    - dynamodb-local
+  clients:
+    build: ./services/clients
+    expose:
+      - "5002"
+    ports:
+      - "5002:5002"
+    environment:
+      - NODE_ENV=development
+      - PORT=5002
+    depends_on:
+      - dynamodb-local
+    volumes:
+      - "./services/clients:/app:cached"
+      - "/app/node_modules"
+    command: "supervisor -w ./ ./app.js"
+    networks:
+      - local-network
 
   #documents:
   #  build: ./services/documents
@@ -73,11 +127,6 @@ services:
   #    - NODE_ENV=development
   #  depends_on:
   #    - localstack
-
-  #dynamodb-local:
-  #  image: amazon/dynamodb-local
-  #  ports:
-  #    - "8000:8000"
 
   #localstack:
   #  image: localstack/localstack
