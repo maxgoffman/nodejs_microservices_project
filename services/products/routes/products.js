@@ -47,9 +47,16 @@ router.put("/:id", (req, res) => {
   const { id } = req.params;
   const { name, price, description } = req.body;
   const query =
-    "UPDATE products SET name = ?, price = ?, description = ? WHERE id = ?";
-
-  connection.query(query, [name, price, description, id], (error) => {
+    "UPDATE products SET " +
+    Object.entries(req.body)
+      .map((element) => {
+        return `${element[0]} = ${
+          typeof element[1] == "string" ? `'${element[1]}'` : element[1]
+        }`;
+      })
+      .join(", ") +
+    " WHERE id = ?";
+  connection.query(query, [id], (error) => {
     if (error) throw error;
     res.json({ id, name, price, description });
   });
