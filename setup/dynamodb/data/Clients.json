@@ -1,0 +1,5 @@
+{
+  "id": { "S": "ID|675c2056919dd884bfe9496a|NAME|EMAIL" },
+  "name": { "S": "That Guy" },
+  "email": { "S": "contact@thatguy.com" }
+}

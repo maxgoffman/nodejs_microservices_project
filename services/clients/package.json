@@ -1,5 +1,5 @@
 {
-  "name": "products-service",
+  "name": "clients-service",
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
@@ -8,6 +8,6 @@
   "dependencies": {
     "express": "^4.17.1",
     "body-parser": "^1.19.0",
-    "mysql": "^2.18.1"
+    "aws-sdk": "^2.1030.0"
   }
 }
