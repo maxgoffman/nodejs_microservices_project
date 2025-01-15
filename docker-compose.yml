@@ -65,6 +65,21 @@ services:
       - local-network
     command: '-c "for f in /tmp/dynamoschemas/*.json; do aws dynamodb create-table --endpoint-url "http://dynamodb-local:8000" --cli-input-json file://"$${f#./}"; done && for f in /tmp/dynamodata/*.json; do aws dynamodb put-item --endpoint-url "http://dynamodb-local:8000" --table-name $(basename "$${f%.*}") --item file://"$${f#./}"; done"'
 
+  localstack:
+    image: localstack/localstack
+    environment:
+      SERVICES: s3,sqs,sns,lambda,apigateway
+      AWS_ACCESS_KEY_ID: "FAKEID"
+      AWS_SECRET_ACCESS_KEY: "FAKEKEY"
+      AWS_REGION: "us-east-1"
+    ports:
+      - "4566:4566"
+    networks:
+      - local-network
+    volumes:
+      - ./setup/s3/initscript/init-s3.sh:/etc/localstack/init/ready.d/init-s3.sh
+      - ./setup/s3/data:/data
+
   products:
     build: ./services/products
     expose:
@@ -82,24 +97,6 @@ services:
       - "./services/products:/app:cached"
       - "/app/node_modules"
     command: "supervisor -w ./ ./app.js"
-
-  suppliers:
-    build: ./services/suppliers
-    expose:
-      - "5003"
-    ports:
-      - "5003:5003"
-    environment:
-      - NODE_ENV=development
-      - PORT=5003
-    depends_on:
-      - mongodb
-    volumes:
-      - "./services/suppliers:/app:cached"
-      - "/app/node_modules"
-    command: "supervisor -w ./ ./app.js"
-    networks:
-      - local-network
 
   clients:
     build: ./services/clients
@@ -119,18 +116,38 @@ services:
     networks:
       - local-network
 
-  #documents:
-  #  build: ./services/documents
-  #  ports:
-  #    - "5004:3000"
-  #  environment:
-  #    - NODE_ENV=development
-  #  depends_on:
-  #    - localstack
+  suppliers:
+    build: ./services/suppliers
+    expose:
+      - "5003"
+    ports:
+      - "5003:5003"
+    environment:
+      - NODE_ENV=development
+      - PORT=5003
+    depends_on:
+      - mongodb
+    volumes:
+      - "./services/suppliers:/app:cached"
+      - "/app/node_modules"
+    command: "supervisor -w ./ ./app.js"
+    networks:
+      - local-network
 
-  #localstack:
-  #  image: localstack/localstack
-  #  environment:
-  #    SERVICES: s3,sqs,sns,lambda,apigateway
-  #  ports:
-  #    - "4566:4566"
+  documents:
+    build: ./services/documents
+    ports:
+      - "5004:5004"
+    expose:
+      - "5004"
+    environment:
+      - NODE_ENV=development
+      - PORT=5004
+    depends_on:
+      - localstack
+    volumes:
+      - "./services/documents:/app:cached"
+      - "/app/node_modules"
+    command: "supervisor -w ./ ./app.js"
+    networks:
+      - local-network
