@@ -78,7 +78,6 @@ services:
       - local-network
     volumes:
       - ./setup/s3/initscript/init-s3.sh:/etc/localstack/init/ready.d/init-s3.sh
-      #- ./setup/s3/initscript/init-s3.sh:/docker-entrypoint-initaws.d/init-s3.sh
       - ./setup/s3/data:/data
 
   products:
