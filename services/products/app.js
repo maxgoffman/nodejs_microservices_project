@@ -4,7 +4,7 @@ const productRoutes = require("./routes/products");
 
 const app = express();
 
-app.use(bodyParser.json());
+app.use(express.json());
 app.use("/products", productRoutes);
 
 const PORT = process.env.PORT || 3000;
