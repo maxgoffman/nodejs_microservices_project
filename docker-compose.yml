@@ -77,11 +77,14 @@ services:
     networks:
       - local-network
     volumes:
-      - ./setup/s3/initscript/init-s3.sh:/etc/localstack/init/ready.d/init-s3.sh
-      - ./setup/s3/data:/data
+      - "./setup/s3/initscript/init-s3.sh:/etc/localstack/init/ready.d/init-s3.sh"
+      - "./setup/s3/data:/data"
 
   products:
-    build: ./services/products
+    build:
+      context: ./services
+      args:
+        - SERVICE=products
     expose:
       - "5001"
     ports:
@@ -99,7 +102,10 @@ services:
     command: "supervisor -w ./ ./app.js"
 
   clients:
-    build: ./services/clients
+    build:
+      context: ./services
+      args:
+        - SERVICE=clients
     expose:
       - "5002"
     ports:
@@ -117,7 +123,10 @@ services:
       - local-network
 
   suppliers:
-    build: ./services/suppliers
+    build:
+      context: ./services
+      args:
+        - SERVICE=suppliers
     expose:
       - "5003"
     ports:
@@ -135,7 +144,10 @@ services:
       - local-network
 
   documents:
-    build: ./services/documents
+    build:
+      context: ./services
+      args:
+        - SERVICE=documents
     ports:
       - "5004:5004"
     expose:

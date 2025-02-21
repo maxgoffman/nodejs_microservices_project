@@ -1,19 +1,19 @@
 const express = require("express");
 const router = express.Router();
-const connection = require("../models/product");
+const connection = require("../models/connection");
+
 const mapValidEntriesToString = (obj) =>
   Object.entries(obj)
-    .map((element) => {
-      return `${element[0]} = ${
-        typeof element[1] == "string" ? `'${element[1]}'` : element[1]
-      }`;
-    })
+    .map(
+      ([key, value]) =>
+        `${key} = ${typeof value === "string" ? `'${value}'` : value}`
+    )
     .join(", ");
+
 // Create a new product
 router.post("/", (req, res) => {
-  console.log("getting all products");
   const { name, price, description } = req.body;
-  console.log(`Request body ${Object.entries(req.body)}`);
+  console.log(`Request body ${JSON.stringify(req.body)}`);
   const query =
     "INSERT INTO products (name, price, description) VALUES (?, ?, ?)";
 
@@ -53,6 +53,9 @@ router.get("/:id", (req, res) => {
 router.put("/:id", (req, res) => {
   const { id } = req.params;
   const { name, price, description } = req.body;
+  console.log(
+    `Updating product with ID: ${id} | New Data -> Name: ${name}, Price: ${price}, Description: ${description} `
+  );
   const query =
     "UPDATE products SET " +
     mapValidEntriesToString(req.body) +
