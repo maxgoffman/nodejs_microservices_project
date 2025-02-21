@@ -1,18 +1,17 @@
 const express = require("express");
 const router = express.Router();
-const { dynamodb } = require("../models/client");
+const { dynamodb } = require("../models/connection");
 const config = require("../config");
 const crypto = require("crypto");
 const mapValidKeysToString = (obj) =>
   Object.keys(obj)
-    .map((element) => {
-      return `${element == "name" ? `#${element}` : element} = :${element}`;
-    })
+    .map((key) => `${key === "name" ? `#${key}` : key} = :${key}`)
     .join(", ");
+
 // Create a new client
 router.post("/", (req, res) => {
   const { name, email } = req.body;
-  const id = `ID|${crypto.randomUUID()}|NAME|EMAIL`;
+  const id = `ID|${crypto.randomUUID()}`;
   const params = {
     TableName: config.dynamodb.tableName,
     Item: { id, name, email },

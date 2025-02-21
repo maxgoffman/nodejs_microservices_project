@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const { MongoClient, ObjectID } = require("mongodb");
-const { getDb } = require("../models/supplier");
+const { ObjectID } = require("mongodb");
+const { getDb } = require("../models/connection");
 const removeNullUndefined = (obj) =>
   Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
 
